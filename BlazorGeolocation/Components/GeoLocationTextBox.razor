@@ -1,0 +1,78 @@
+﻿@using System.Reactive
+@using System.Reactive.Linq;
+@using System.Reactive.Subjects
+@using BlazorGeolocation.Services 
+@inject GeocodingService GeocodingService
+
+<RadzenTextBox @oninput="onTextChanged"></RadzenTextBox> @GeoLocation
+<br />
+@if (IsLoading)
+{
+    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" Style="margin: 20px" />
+}
+
+@if (Results.Length > 0)
+{
+    <RadzenGrid Data="Results"  RowSelect="@OnRowSelect" TItem="GeocodingResult">
+        <Columns>
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="formatted_address" Title="Address">
+                <FooterTemplate>
+                    Total Results: <b>@Results.Count()</b>
+                </FooterTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="row.Geometry.Location.Lat" Title="Latitude" />
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="row.Geometry.Location.Lng" Title="Longitude" />
+
+        </Columns>
+    </RadzenGrid>
+}
+
+@code {
+
+    Subject<string> addressSubject = new Subject<string>();
+
+    public string Address { get; set; }
+
+    public string GeoLocation { get; set; }
+
+    public bool IsLoading { get; set; }
+
+    private GeocodingResult[] Results { get; set; } = new GeocodingResult[0];
+
+    void onTextChanged(ChangeEventArgs args)
+    {
+        addressSubject.OnNext(args.Value.ToString());
+    }
+
+    protected override void OnInitialized()
+    {
+        addressSubject
+            .Throttle(TimeSpan.FromMilliseconds(300))
+            .DistinctUntilChanged()
+            .Subscribe(OnAddressChanged);
+    }
+
+
+    private void OnRowSelect(GeocodingResult row)
+    {
+        Address = row.FormattedAddress;
+        GeoLocation = $"Lat:{row.Geometry.Location.Lat}, Lng: {row.Geometry.Location.Lng}";
+        Results = new GeocodingResult[0];
+        StateHasChanged();
+    }
+
+    private async void OnAddressChanged(string address)
+    {
+        Address = address;
+        IsLoading = true;
+        GeoLocation = "";
+        await InvokeAsync(() => StateHasChanged());
+
+        var response = await GeocodingService.FindAsync(address);
+        Results = response.Results;
+
+        IsLoading = false;
+
+        await InvokeAsync(() => StateHasChanged());
+    }
+}
