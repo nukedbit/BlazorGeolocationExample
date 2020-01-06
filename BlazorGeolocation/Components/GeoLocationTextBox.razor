@@ -15,13 +15,13 @@
 {
     <RadzenGrid Data="Results"  RowSelect="@OnRowSelect" TItem="GeocodingResult">
         <Columns>
-            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="formatted_address" Title="Address">
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="FormattedAddress" Title="Address">
                 <FooterTemplate>
                     Total Results: <b>@Results.Count()</b>
                 </FooterTemplate>
             </RadzenGridColumn>
-            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="row.Geometry.Location.Lat" Title="Latitude" />
-            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="row.Geometry.Location.Lng" Title="Longitude" />
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="Geometry.Location.Lat" Title="Latitude" />
+            <RadzenGridColumn Width="200px" TItem="GeocodingResult" Property="Geometry.Location.Lng" Title="Longitude" />
 
         </Columns>
     </RadzenGrid>
